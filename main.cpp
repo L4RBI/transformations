@@ -66,14 +66,16 @@ int delatTemps = duration_cast<milliseconds>( deltaTime).count() ;
 quat q0, q1, q3; // déclaration de quaternions
 // Création d’un quaternion unitaire représentant une rotation
 // d’axe (1,1,0) et d’angle 90 degrés
-q0=angleAxis((float)radians(0.), vec3(0.,1.,1.));
+
+float t= (float) 1 - (float)delatTemps/1000;
+
+q0=angleAxis((float)radians(45.), vec3(0.,1.,1.));
 q1=angleAxis((float)radians(90.), vec3(1.,0.,1.));
-quat interpolatedquat = mix(q0, q1, (float)delatTemps/1000);
+quat interpolatedquat = mix(q0, q1, t);
 mat4 RotationMatrix = toMat4(interpolatedquat);
 rotationInterpolQuaternion = RotationMatrix;
 
 
-float t= (float) 1 - (float)delatTemps/1000;
 mat4 q0M = toMat4(q0);
 mat4 q0M1 = toMat4(q1);
 
@@ -82,19 +84,40 @@ mat4 inter = (1-t) * q0M + t * q0M1;
 rotationInterpolMatrice = inter;
 
 
-// composition rotations = multiplication des
-
-
-
-
-
-
-
 
            glutPostRedisplay();
           glutTimerFunc(100,anim,1 );
 
 }
+
+class Bone {
+  public:
+    vec3 axis;   
+    Bone *child;
+    float angleC;
+    vec3 position;
+    float c;
+    Bone(vec3 Axis,float AngleC, vec3 Position, float C){
+      axis = Axis;
+      angleC= AngleC;
+      position = Position;
+      c = C;
+      
+    }
+    void rotate(float t, float angle, float trans) {  
+      quat q0=angleAxis((float)radians(45.), vec3(0.,1.,1.));
+      quat q1=angleAxis((float)radians(angle), vec3(1.,0.,1.));
+      quat interpolatedquat = mix(q0, q1, t);
+      mat4 m = toMat4(interpolatedquat);
+      glPushMatrix();
+        glMultMatrixf(&m[0][0]);
+        glColor3f(c,0,0);
+        glScalef(2,.2,.2);
+        glTranslatef(trans,0.,0.);
+        glutSolidCube(0.25);
+    glPopMatrix();
+    }
+};
 
 
 int main(int argc,char **argv)
@@ -134,25 +157,29 @@ int main(int argc,char **argv)
 
 void bras()
 {
+  Bone bone = Bone(vec3(0.,1.,1.),0.0,vec3(.5,0.,0.), 1);
+  bone.rotate(0.5,(float)radians(45.), 0.125);
+  Bone bone1 = Bone(vec3(0.,1.,1.),0.0,vec3(.5,0.,0.), 0.5);
+  bone1.rotate(0.5,(float)radians(25.), 0.25);
 
 
-// a animer pas interpolation de quaternions
-    glPushMatrix();
-    glMultMatrixf(&rotationInterpolQuaternion[0][0]);
-        glColor3f(1,0,0);
-        glScalef(2,.2,.2);
-        glTranslatef(.5,0.,0.);
-        glutSolidCube(1.);
-    glPopMatrix();
+// // a animer pas interpolation de quaternions
+//     glPushMatrix();
+//     glMultMatrixf(&rotationInterpolQuaternion[0][0]);
+//         glColor3f(1,0,0);
+//         glScalef(2,.2,.2);
+//         glTranslatef(.5,0.,0.);
+//         glutSolidCube(1.);
+//     glPopMatrix();
 
-    // a animer par interpolation de matrice
-    glPushMatrix();
-    glMultMatrixf(&rotationInterpolMatrice[0][0]);
-        glColor3f(1,1,0);
-        glScalef(2,.2,.2);
-        glTranslatef(.5,0.,0.);
-        glutSolidCube(1.);
-    glPopMatrix();
+//     // a animer par interpolation de matrice
+//     glPushMatrix();
+//     glMultMatrixf(&rotationInterpolMatrice[0][0]);
+//         glColor3f(1,1,0);
+//         glScalef(2,.2,.2);
+//         glTranslatef(.5,0.,0.);
+//         glutSolidCube(1.);
+//     glPopMatrix();
 
 
     glPopMatrix();
